@@ -20,11 +20,12 @@ exports.loginUserPost = [
       return
     }
 
-    passport.authenticate('local', {
-      successRedirect: '/',
-      failureRedirect: '/',
-    })
+    next()
   },
+  passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/',
+  }),
 ]
 
 exports.createUserGet = (req, res, next) => {
@@ -44,6 +45,7 @@ exports.createUserPost = [
     .trim()
     .isEmail()
     .escape(),
+  body('is-admin').escape(),
   body('password', 'Password must be at least 5 characters long')
     .isLength({ min: 5 })
     .escape(),
@@ -68,6 +70,7 @@ exports.createUserPost = [
         last_name: req.body.lastname,
         user_name: req.body.username,
         password: hashedPassword,
+        is_admin: req.body['is-admin'] === 'on' ? true : false,
       })
       user.save((err) => {
         if (err) {
@@ -80,7 +83,12 @@ exports.createUserPost = [
 ]
 
 exports.givePermissionGet = (req, res, next) => {
-  res.render('access-form')
+  if (res.locals.currentUser) {
+    res.render('access-form')
+    return
+  }
+
+  res.redirect('log-in')
 }
 
 exports.givePermissionPost = [
@@ -89,8 +97,34 @@ exports.givePermissionPost = [
   ),
 
   (req, res, next) => {
-    // Find user in DB by user_id
-    // Create user object with member: true
-    // Update that user object in Database
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      res.render('access-form', {
+        errors: errors.array(),
+      })
+      return
+    }
+
+    const member = new User({
+      first_name: res.locals.currentUser.first_name,
+      last_name: res.locals.currentUser.last_name,
+      user_name: res.locals.currentUser.user_name,
+      password: res.locals.currentUser.password,
+      is_member: true,
+      _id: res.locals.currentUser._id,
+    })
+
+    User.findByIdAndUpdate(
+      res.locals.currentUser._id,
+      member,
+      {},
+      (err, themember) => {
+        if (err) {
+          return next(err)
+        }
+
+        res.redirect('/')
+      }
+    )
   },
 ]

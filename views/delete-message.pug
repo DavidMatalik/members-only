@@ -1,0 +1,12 @@
+h1 Delete message: #{message.title}
+
+  p Do you really want to delete this message?
+
+  form(method='POST' action='')
+    input(type='hidden',name='messageid', required='true', value=message._id)
+    button(type='submit') Delete
+      
+  if errors
+   ul
+    for error in errors
+     li!= error.msg

@@ -1,0 +1,15 @@
+h1 Create a message
+
+form(method='POST' action='')
+  label(for='message-title') Title:
+  input(type='text' name='message-title')
+
+  label(for='message-text') Text:
+  input(type='text' name='message-text')
+
+  button(type='submit') Submit
+
+  if errors
+   ul
+    for error in errors
+     li!= error.msg

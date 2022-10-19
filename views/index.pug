@@ -5,5 +5,20 @@ html(lang='en')
     link(rel="stylesheet", href="stylesheets/style.css")
   body
    h1 #{title}
-   p Welcome to #{title}
-  
+   p Welcome #{currentUser ? currentUser.first_name : ''} to #{title}
+
+   if currentUser 
+    p
+      a(href='/messages/create') Create new message
+
+  if listMessages
+    h3 Have a look at all the available messages
+    ul
+      for message in listMessages
+        if currentUser && currentUser.is_member
+          li Title: #{message.title}, Text: #{message.text}, Author: #{message.user.first_name}, Date created: #{message.createdAt_formatted}
+        else if currentUser && currentUser.is_admin
+          li Title: #{message.title}, Text: #{message.text}, Author: #{message.user.first_name}, Date created: #{message.createdAt_formatted}
+          a(href=message.url + '/delete') Delete message
+        else
+          li Title: #{message.title}, Text: #{message.text}
